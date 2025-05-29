@@ -11,10 +11,23 @@ class User_info(db.Model, UserMixin):
 
     @staticmethod
     def get(user_id):
+        """
+        Obtiene el id del usuario (Si es que existe)
+        :param user_id: id a buscar
+        :return: información del usuario encontrada en la base de datos
+        """
         return User_info.query.get(user_id)
 
     @staticmethod
     def create(id_, name, email, profile_pic):
+        """
+        Crea un usuario en la base de datos
+        :param id_: id del usuario
+        :param name: nombre del usuario
+        :param email: correo del usuario
+        :param profile_pic: foto de perfil del usuario
+        :return: el usuario creado
+        """
         user = User_info(id = id_, name = name, email = email,  profile_pic = profile_pic)
         db.session.add(user)
         db.session.commit()

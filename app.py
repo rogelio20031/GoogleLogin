@@ -9,6 +9,7 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
+#Credenciales del proyecto de Google obtenidas desde variables de entorno locales
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = (
@@ -35,8 +36,14 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 def load_user(user_id):
     return User_info.get(user_id)
 
+#Ruta main
 @app.route("/")
 def index():
+    """
+    Hay dos posibilidades, que el usuario ya esté autenticado y que no, dependiendo de esto es lo que va a mostrar
+    :return: No autenticado - Botón de logearse
+    :return: Autenticado - Información de la persona
+    """
     if current_user.is_authenticated:
         return(
             "<p>Hola, {}! Estas logeando con este email: {}</p>"
@@ -51,6 +58,11 @@ def index():
 
 @app.route("/login")
 def login():
+    """
+    Redirige al usuario a Google para iniciar sesión, primero obtenemos la URL de autorización de Google, luego
+    construimos una URL personalizada con el id y ajustamos que permisos vamos a pedir (scope)
+    :return: Redirigimos al usuario con la URL de Google que creamos
+    """
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
@@ -63,6 +75,13 @@ def login():
 
 @app.route("/login/callback")
 def callback():
+    """
+    Procesa la respuesta de Google después del login, primero obtenemos el código que manda Google, pedimos un access
+    token a Google utilizando este código, con este token pedimos la información del usuario, si el correo del usuario
+    está verificado creamos el usuario en la base de datos (si aún no existe) si el correo no está verificado muestra
+    un error
+    :return: Redirigimos al usuario al inicio
+    """
     code = request.args.get("code")
 
     google_provider_cfg = get_google_provider_cfg()
@@ -106,10 +125,18 @@ def callback():
 @app.route("/logout")
 @login_required
 def logout():
+    """
+    Cierra la sesión del usuario
+    :return: Redirige al inicio
+    """
     logout_user()
     return redirect(url_for("index"))
 
 def get_google_provider_cfg():
+    """
+    Trae la configuración de Google OAuth haciendo una petición a la URL que proporcionamos
+    :return: devuelve las URLs importantes como login, token, user info, etc. En formato JSON
+    """
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 if __name__ == "__main__":
