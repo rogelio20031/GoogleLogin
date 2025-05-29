@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  db:
+    image: mysql:9.3.0
+    container_name: db-login-google
+    environment:
+      MYSQL_ROOT_PASSWORD: NYVA
+      MYSQL_DATABASE: google
+    ports:
+      - "33060:3306"
+    volumes:
+      - mysql-data-login-google:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  web:
+    build: .
+    environment:
+      DB_USER: root
+      DB_PASSWORD: NYVA
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: google
+      OAUTHLIB_INSECURE_TRANSPORT: 1
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+volumes:
+  mysql-data-login-google:
